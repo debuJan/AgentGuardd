@@ -17,12 +17,14 @@ class ApiError extends Error {
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
+  const apiKey = localStorage.getItem('agentguard_api_key');
   const config = {
+    ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(apiKey ? { 'X-API-Key': apiKey } : {}),
       ...options.headers,
     },
-    ...options,
   };
 
   try {
