@@ -1,0 +1,51 @@
+# Production overlay for AgentGuard.
+#
+# Adds automatic-HTTPS TLS termination (Caddy), multi-worker API, and
+# removes all directly-published ports except 80/443 — the API and Postgres
+# are reachable only through the proxy / internal network.
+#
+# Usage:
+#   DOMAIN=app.example.com AGENTGUARD_API_KEY=<long-random> \
+#   AGENTGUARD_CORS_ORIGINS=https://app.example.com \
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+#
+# Point your domain's DNS at this host first; Caddy will obtain and renew
+# the Let's Encrypt certificate automatically on first request.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: agentguard-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - agentguard_caddy_data:/data
+      - agentguard_caddy_config:/config
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN must be set, e.g. DOMAIN=app.example.com}
+    depends_on:
+      - agentguard
+
+  agentguard:
+    restart: unless-stopped
+    # Internal only in production: reachable via the Caddy service name.
+    ports: !reset []
+    expose:
+      - "8000"
+    environment:
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-4}
+      AGENTGUARD_API_KEY: ${AGENTGUARD_API_KEY:?AGENTGUARD_API_KEY must be set for production}
+      AGENTGUARD_CORS_ORIGINS: ${AGENTGUARD_CORS_ORIGINS:?Set to your frontend origin, e.g. https://app.example.com}
+      AGENTGUARD_RATE_LIMIT: ${AGENTGUARD_RATE_LIMIT:-200/minute}
+
+  postgres:
+    restart: unless-stopped
+    # Internal only in production.
+    ports: !reset []
+
+volumes:
+  agentguard_caddy_data:
+  agentguard_caddy_config:

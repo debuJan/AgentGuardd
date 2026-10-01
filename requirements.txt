@@ -1,0 +1,25 @@
+# Pinned to the versions verified in the dev venv (2026-09-29).
+# Regenerate with: .venv/bin/pip freeze
+
+# --- platform ---
+pydantic==2.13.5
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+# websockets is uvicorn's optional ws backend. v15+ requires Python 3.11+,
+# so pin below v15 to keep Python 3.10 working. (langsmith asks for >=15
+# but only for its own streaming feature, which this app does not use.)
+websockets>=13.1,<15
+sqlalchemy==2.0.46
+psycopg[binary]==3.2.9
+pytest==9.1.1
+httpx==0.28.1
+python-dotenv==1.2.3
+
+# --- database migrations ---
+alembic==1.20.0
+
+# --- optional LLM provider backends (dynamically imported) ---
+# langchain-groq is required only for the groq LLM provider
+# (src/core/llm_provider.py). Pinned for reproducible builds; the live
+# provider path still needs to be exercised against a real API key.
+langchain-groq==1.1.3

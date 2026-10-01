@@ -1,0 +1,17 @@
+# Caddy reverse proxy for AgentGuard production.
+# Automatic HTTPS via Let's Encrypt — no certificate management needed.
+# DOMAIN is injected from the environment (see docker-compose.prod.yml).
+
+{$DOMAIN} {
+    reverse_proxy agentguard:8000
+
+    # Basic hardening headers on every response.
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+        -Server
+    }
+
+    # Caddy handles HTTP->HTTPS redirect and certificate renewal itself.
+}

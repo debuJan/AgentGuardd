@@ -1,0 +1,45 @@
+AgentGuard — FRESH START (Windows, one go)
+=========================================
+
+This folder contains the complete fixed project:
+- No hardcoded test cases: the Test Cases page is a real library backed
+  by the API (create / run / delete anything: refund, delivery, etc.)
+- One-command API starter (start_api.py)
+- Frontend dev config pinned to http://127.0.0.1:8000 (no localhost/IPv6
+  weirdness on Windows)
+- websockets pinned for Python 3.10 compatibility
+
+DO THIS IN ORDER (PyCharm terminal: Alt+F12):
+
+0) Kill anything stale from earlier attempts:
+     Get-Process python,node -ErrorAction SilentlyContinue | Stop-Process -Force
+
+1) Extract this ZIP to a NEW folder, e.g. C:\Users\<you>\Downloads\AgentGuardFresh
+   (do NOT extract over the old folder)
+
+2) Give it your working Python (no reinstall needed):
+   - In File Explorer, COPY  C:\Users\<you>\Downloads\AgentGuard\.venv2
+   - PASTE it inside the new folder, then RENAME the pasted copy to  .venv
+   (copy/paste in Explorer — no commands needed)
+
+3) Start the API (terminal, in the NEW folder):
+     .\.venv\Scripts\python start_api.py
+   Wait for:  Uvicorn running on http://127.0.0.1:8000
+   Leave this terminal running.
+
+4) Start the dashboard (open a NEW terminal tab with the + button):
+     cd frontend
+     npm install        (first time only — takes a few minutes)
+     npm run dev
+   Wait for:  Local: http://localhost:3000
+   Open that address in your browser.
+
+5) In the dashboard, open Test Cases → + New Test Case → fill it in →
+   Create Test Case. It will save to the library.
+
+OPTIONAL demo data (6 sample cases: 3 refund + 3 delivery, deletable):
+     .\.venv\Scripts\python scripts\seed_demo_test_cases.py
+
+OPTIONAL browser test (right-click run_e2e.py → Run 'run_e2e' in PyCharm).
+
+To stop everything: Ctrl+C in each terminal, or repeat step 0.

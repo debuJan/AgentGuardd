@@ -1,0 +1,15 @@
+# Keep the build context lean and secret-free. The image is API-only:
+# the frontend ships separately as a static build.
+.git
+.venv
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+frontend/
+tests/
+.env
+*.md

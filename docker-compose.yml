@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: agentguard-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      POSTGRES_DB: agentguard
+    ports:
+      - "5433:5432"
+    volumes:
+      - agentguard_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d agentguard"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  agentguard:
+    build: .
+    image: agentguard:latest
+    container_name: agentguard-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # NOTE: the +psycopg dialect is required — the image only ships
+      # psycopg v3 (psycopg[binary]), not psycopg2.
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://postgres:${POSTGRES_PASSWORD}@postgres:5432/agentguard}
+      USE_POSTGRES: "true"
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      AGENTGUARD_ALLOWED_AUTH_ENV: ${AGENTGUARD_ALLOWED_AUTH_ENV:-}
+      AGENTGUARD_ALLOW_PRIVATE_ENDPOINTS: "1"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8000:8000"
+
+volumes:
+  agentguard_postgres_data:
