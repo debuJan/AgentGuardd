@@ -4,26 +4,51 @@ AI-agent reliability & security evaluation platform. Run an agent through a
 test case, get a deterministic reliability + security report with scores,
 metrics, and findings — via API or the React dashboard.
 
-## Quickstart
+## Quickstart (5 minutes, Docker)
 
-### Backend (FastAPI)
+Prereqs: Docker + a terminal. No Python/Node needed on your machine.
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\activate
+```bash
+git clone https://github.com/debuJan/AgentGuard && cd AgentGuard
+cp .env.example .env
+# open .env and set a long random POSTGRES_PASSWORD (required)
+docker compose up --build
+```
+
+That's it. The API runs on `http://localhost:8000` (docs at `/docs`,
+health at `/health`); PostgreSQL 16 starts alongside it and the container
+entrypoint runs Alembic migrations automatically before serving traffic.
+
+Dashboard (second terminal):
+
+```bash
+cd frontend
+npm install
+VITE_API_BASE_URL=http://localhost:8000 npm run build
+npx serve dist -l 4173
+```
+
+Open `http://localhost:4173`. To stop everything: `docker compose down`.
+
+> Windows (PowerShell): same steps; use `copy .env.example .env` and
+> `$env:VITE_API_BASE_URL="http://localhost:8000"; npm run build`.
+
+### Without Docker (local dev)
+
+Backend (FastAPI):
+
+```bash
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn src.api.app:app --host 127.0.0.1 --port 8000
 ```
 
-API docs: `http://127.0.0.1:8000/docs` · Health: `/health`
+Frontend (React + Vite):
 
-### Frontend (React + Vite)
-
-```powershell
+```bash
 cd frontend
 npm install
 npm run dev        # dev server
-npm run build      # production build
 ```
 
 The dashboard talks to the API base URL baked in at build time via
@@ -31,7 +56,7 @@ The dashboard talks to the API base URL baked in at build time via
 
 ### Tests
 
-```powershell
+```bash
 pytest -q            # backend suite (in-memory store)
 cd frontend
 npx playwright test  # end-to-end: API + dashboard in Chromium
@@ -42,22 +67,13 @@ no Postgres) through `frontend/e2e/launch-api.mjs` and builds/serves the
 frontend itself. Just run `npx playwright test`. (First run:
 `npx playwright install chromium`.)
 
-### Docker
-
-```powershell
-docker compose up --build
-```
-
-Starts the API (port 8000) with PostgreSQL 16. The container entrypoint runs
-Alembic migrations first, then starts uvicorn with `${UVICORN_WORKERS:-2}`
-workers. Health: `http://localhost:8000/health`.
-
 ### Production deploy (HTTPS)
 
-```powershell
+```bash
 # .env must set: POSTGRES_PASSWORD, AGENTGUARD_API_KEY,
 # AGENTGUARD_CORS_ORIGINS=https://your-frontend, DOMAIN=api.example.com
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+```
 ```
 
 The prod overlay adds Caddy as a reverse proxy with **automatic HTTPS**

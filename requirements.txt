@@ -9,7 +9,7 @@ uvicorn[standard]==0.54.0
 # so pin below v15 to keep Python 3.10 working. (langsmith asks for >=15
 # but only for its own streaming feature, which this app does not use.)
 websockets>=13.1,<15
-sqlalchemy==2.0.46
+sqlalchemy==2.1.1
 psycopg[binary]==3.2.9
 pytest==9.1.1
 httpx==0.28.1

@@ -30,11 +30,6 @@ services:
       USE_POSTGRES: "true"
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       AGENTGUARD_ALLOWED_AUTH_ENV: ${AGENTGUARD_ALLOWED_AUTH_ENV:-}
-      AGENTGUARD_ALLOW_PRIVATE_ENDPOINTS: "1"
-      AGENTGUARD_API_KEY: ${AGENTGUARD_API_KEY:-}
-      AGENTGUARD_CORS_ORIGINS: ${AGENTGUARD_CORS_ORIGINS:-}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     ports:
       - "8000:8000"
 

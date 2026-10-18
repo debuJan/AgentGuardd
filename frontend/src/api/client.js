@@ -6,6 +6,11 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
+// Build-time API key for the deployed dashboard. When set, it is sent as
+// the X-API-Key header that the production API requires on every route
+// except /health. Leave unset for local dev (API key disabled there).
+const API_KEY = import.meta.env.VITE_API_KEY || '';
+
 class ApiError extends Error {
   constructor(message, status, data) {
     super(message);
@@ -17,14 +22,16 @@ class ApiError extends Error {
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
-  const apiKey = localStorage.getItem('agentguard_api_key');
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+  if (API_KEY) {
+    headers['X-API-Key'] = API_KEY;
+  }
   const config = {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(apiKey ? { 'X-API-Key': apiKey } : {}),
-      ...options.headers,
-    },
+    headers,
   };
 
   try {

@@ -16,5 +16,7 @@ else
 fi
 
 WORKERS="${UVICORN_WORKERS:-2}"
-echo "[entrypoint] Starting API with ${WORKERS} worker(s)..."
-exec uvicorn src.api.app:app --host 0.0.0.0 --port 8000 --workers "${WORKERS}"
+# Render (and most PaaS hosts) assigns the port via $PORT; default to 8000 locally.
+APP_PORT="${PORT:-8000}"
+echo "[entrypoint] Starting API with ${WORKERS} worker(s) on port ${APP_PORT}..."
+exec uvicorn src.api.app:app --host 0.0.0.0 --port "${APP_PORT}" --workers "${WORKERS}"

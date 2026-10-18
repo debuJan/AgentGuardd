@@ -93,22 +93,20 @@ def create_run_report(
     if req.trace is not None:
         trace = req.trace
     else:
-        # External agents do not need AgentGuard's LLM provider.
-        provider = None
-
-        if req.agent_config.execution_type != "external":
-            try:
-                provider = get_llm_provider(
-                    provider=req.agent_config.llm.provider,
-                    model_name=req.agent_config.llm.model,
-                    temperature=req.agent_config.llm.temperature,
-                    max_tokens=req.agent_config.llm.max_tokens,
-                )
-            except ValueError as exc:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=str(exc),
-                )
+        # Create the configured LLM provider.
+        try:
+            provider = get_llm_provider(
+                provider=req.agent_config.llm.provider,
+                model_name=req.agent_config.llm.model,
+                temperature=req.agent_config.llm.temperature,
+                max_tokens=req.agent_config.llm.max_tokens,
+            )
+        except ValueError as exc:
+            # Unknown provider or missing API key: client configuration error.
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(exc),
+            )
 
         # Execute the actual agent.
         runner = AgentRunner(

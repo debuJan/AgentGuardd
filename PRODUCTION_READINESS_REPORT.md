@@ -62,6 +62,20 @@ daemon, both absent here): running `docker compose up --build` end-to-end,
 a real deployment with DNS + TLS issuance, and a live-key exercise of the
 Groq provider path.
 
+**Update (2026-10-14):** Docker verification was attempted again on a fresh
+Ubuntu 24.04 VM with Docker 29.9.0 installed from Docker's official repo.
+The daemon cannot run *any* container there: the kernel/sandbox blocks
+bridge creation (`Failed to create bridge docker0 via netlink: operation not
+supported`), overlay mounts (`invalid argument`), and even mount/network
+namespace entry (`setns: operation not permitted` — `hello-world` fails too).
+`vfs` storage driver + `--bridge=none --iptables=false` got the daemon up,
+but runc still cannot start a container process. Blocker #2 (Docker never
+built/run) therefore still stands and needs a real machine — e.g. the
+owner's Windows/Mac with Docker Desktop, or the deploy host itself.
+`docker compose config` validates cleanly for both `docker-compose.yml`
+and the prod overlay (with required secrets set). README gained a true
+5-minute Docker quickstart.
+
 ## Verdict: NOT READY
 
 Code-level remediation is complete and verified everywhere this environment allows.

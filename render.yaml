@@ -1,0 +1,59 @@
+# Render Blueprint for AgentGuard — one-click deploy.
+#
+# Usage:
+#   1. Push this repo to GitHub (debuJan/AgentGuardd).
+#   2. In Render: New > Blueprint > select the repo. Render creates all
+#      three resources below from this file.
+#   3. After deploy, open the agentguard-api service, copy its public URL
+#      (https://agentguard-api.onrender.com) and the generated
+#      AGENTGUARD_API_KEY, then paste them into the dashboard service's
+#      VITE_API_BASE_URL and VITE_API_KEY env vars and redeploy the
+#      dashboard (Manual Deploy > Deploy latest commit).
+#   4. Add your GROQ_API_KEY on the api service for live LLM evals.
+#
+# All three run on Render's free tier (no card needed). The API sleeps
+# after 15 min idle on free — first request after sleep takes ~30-60s.
+
+databases:
+  - name: agentguard-db
+    plan: free # free Postgres expires after 90 days; upgrade to keep it
+
+services:
+  # ---- FastAPI backend (Docker) ----
+  - type: web
+    name: agentguard-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health # exempt from X-API-Key auth
+    envVars:
+      - key: USE_POSTGRES
+        value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: agentguard-db
+          property: connectionString
+      - key: AGENTGUARD_API_KEY
+        generateValue: true # long random key; copy into dashboard's VITE_API_KEY
+      - key: AGENTGUARD_CORS_ORIGINS
+        value: https://agentguard-dashboard.onrender.com
+      - key: AGENTGUARD_RATE_LIMIT_ENABLED
+        value: "true"
+      - key: UVICORN_WORKERS
+        value: "2"
+      - key: GROQ_API_KEY
+        sync: false # paste your Groq key in the Render dashboard to enable live evals
+
+  # ---- React dashboard (static site) ----
+  - type: web
+    name: agentguard-dashboard
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false # set AFTER first deploy, e.g. https://agentguard-api.onrender.com
+      - key: VITE_API_KEY
+        sync: false # set AFTER first deploy: copy AGENTGUARD_API_KEY from the api service

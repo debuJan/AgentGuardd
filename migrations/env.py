@@ -25,6 +25,11 @@ target_metadata = Base.metadata
 
 def _database_url() -> str:
     url = os.getenv("DATABASE_URL", "").strip()
+    # Render/Heroku use "postgres://"; SQLAlchemy 2.x needs "postgresql+psycopg://".
+    if url.startswith("postgres://"):
+        url = "postgresql+psycopg://" + url[len("postgres://"):]
+    elif url.startswith("postgresql://"):
+        url = "postgresql+psycopg://" + url[len("postgresql://"):]
     if url:
         return url
     # Fallback for local tooling only; never a real credential.
