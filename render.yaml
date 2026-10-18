@@ -22,7 +22,7 @@ services:
   # ---- FastAPI backend (Docker) ----
   - type: web
     name: agentguard-api
-    runtime: docker
+    env: docker
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /health # exempt from X-API-Key auth
@@ -44,11 +44,10 @@ services:
       - key: GROQ_API_KEY
         sync: false # paste your Groq key in the Render dashboard to enable live evals
 
-  # ---- React dashboard (static site) ----
+  # ---- React dashboard (static site; static sites are always free) ----
   - type: web
     name: agentguard-dashboard
-    runtime: static
-    plan: free
+    env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
